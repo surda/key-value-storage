@@ -32,16 +32,26 @@ class CookieStorage implements IKeyValueStorage
     /**
      * @param string $key
      * @return string
+     * @throws NoSuchKeyException
      */
     public function read(string $key): string
     {
-        $value = $this->httpRequest->getCookie($key);
+        $value = $this->readOrNull($key);
 
         if ($value === NULL) {
             throw NoSuchKeyException::forKey($key);
         }
 
         return $value;
+    }
+
+    /**
+     * @param string $key
+     * @return string|null
+     */
+    public function readOrNull(string $key): ?string
+    {
+        return $this->httpRequest->getCookie($key);
     }
 
     /**

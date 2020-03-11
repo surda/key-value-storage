@@ -2,7 +2,7 @@
 
 namespace Surda\KeyValueStorage\Exception;
 
-class NoSuchKeyException extends \RuntimeException
+final class NoSuchKeyException extends \RuntimeException
 {
     /**
      * Creates an exception for a key that was not found.

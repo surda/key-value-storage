@@ -6,11 +6,11 @@ use Surda\KeyValueStorage\Exception\NoSuchKeyException;
 
 class ArrayStorage implements IKeyValueStorage
 {
-    /** @var array */
+    /** @var array<mixed> */
     private $values;
 
     /**
-     * @param array $values
+     * @param array<mixed> $values
      */
     public function __construct(array $values = [])
     {
@@ -24,17 +24,26 @@ class ArrayStorage implements IKeyValueStorage
      */
     public function read(string $key): string
     {
-        if ($this->exists($key)) {
-            $value = $this->values[$key];
-        } else {
-            $value = NULL;
-        }
+        $value = $this->readOrNull($key);
 
         if ($value === NULL) {
             throw NoSuchKeyException::forKey($key);
         }
 
-        return (string)$value;
+        return $value;
+    }
+
+    /**
+     * @param string $key
+     * @return string|null
+     */
+    public function readOrNull(string $key): ?string
+    {
+        if ($this->exists($key)) {
+            return $this->values[$key];
+        }
+
+        return NULL;
     }
 
     /**

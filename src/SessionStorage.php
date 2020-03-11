@@ -23,16 +23,26 @@ class SessionStorage implements IKeyValueStorage
     /**
      * @param string $key
      * @return string
+     * @throws NoSuchKeyException
      */
     public function read(string $key): string
     {
-        $value = $this->section[$key];
+        $value = $this->readOrNull($key);
 
         if ($value === NULL) {
             throw NoSuchKeyException::forKey($key);
         }
 
         return $value;
+    }
+
+    /**
+     * @param string $key
+     * @return string|null
+     */
+    public function readOrNull(string $key): ?string
+    {
+        return $this->section[$key];
     }
 
     /**

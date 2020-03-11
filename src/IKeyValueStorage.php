@@ -14,6 +14,12 @@ interface IKeyValueStorage
     public function read(string $key): string;
 
     /**
+     * @param  string $key
+     * @return string|null
+     */
+    public function readOrNull(string $key): ?string;
+
+    /**
      * @param string $key
      * @param string $value
      * @return void
