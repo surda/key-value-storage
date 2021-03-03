@@ -6,8 +6,10 @@ use Surda\KeyValueStorage\Exception\NoSuchKeyException;
 use Nette\Http\Request;
 use Nette\Http\Response;
 
-class CookieStorage implements IKeyValueStorage
+class CookieStorage implements KeyValueStorage
 {
+    use TLoad;
+
     /** @var Request */
     private $httpRequest;
 
@@ -30,13 +32,13 @@ class CookieStorage implements IKeyValueStorage
     }
 
     /**
-     * @param string $key
-     * @return string
+     * @param mixed $key
+     * @return mixed
      * @throws NoSuchKeyException
      */
-    public function read(string $key): string
+    public function readOrWarnOnUndefined($key)
     {
-        $value = $this->readOrNull($key);
+        $value = $this->read($key);
 
         if ($value === NULL) {
             throw NoSuchKeyException::forKey($key);
@@ -46,39 +48,53 @@ class CookieStorage implements IKeyValueStorage
     }
 
     /**
-     * @param string $key
-     * @return string|null
+     * @param mixed $key
+     * @param mixed $default
+     * @return mixed
      */
-    public function readOrNull(string $key): ?string
+    public function read($key, $default = NULL)
     {
-        return $this->httpRequest->getCookie($key);
+        $value = $this->httpRequest->getCookie($key);
+
+        return $value === NULL ? $default : $value;
     }
 
     /**
-     * @param string $key
-     * @param string $value
+     * @param mixed $key
+     * @param mixed $value
+     * @return mixed
      */
-    public function write(string $key, string $value): void
+    public function write($key, $value)
     {
         $this->httpResponse->setCookie($key, $value, $this->time);
+
+        return $value;
     }
 
     /**
-     * @param string $key
+     * @param mixed $key
+     * @return void
      */
-    public function remove(string $key): void
+    public function remove($key)
     {
         $this->httpResponse->deleteCookie($key);
     }
 
-    public function clean(): void
+    /**
+     * @return void
+     */
+    public function clean()
     {
         foreach ($this->httpRequest->getCookies() as $key => $value) {
             $this->httpResponse->deleteCookie($key);
         }
     }
 
-    public function exists(string $key): bool
+    /**
+     * @param mixed $key
+     * @return bool
+     */
+    public function exists($key)
     {
         return array_key_exists($key, $this->httpRequest->getCookies());
     }

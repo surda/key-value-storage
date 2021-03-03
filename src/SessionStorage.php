@@ -6,8 +6,10 @@ use Surda\KeyValueStorage\Exception\NoSuchKeyException;
 use Nette\Http\SessionSection;
 use Nette\Http\Session;
 
-class SessionStorage implements IKeyValueStorage
+class SessionStorage implements KeyValueStorage
 {
+    use TLoad;
+
     /** @var SessionSection */
     private $section;
 
@@ -21,13 +23,13 @@ class SessionStorage implements IKeyValueStorage
     }
 
     /**
-     * @param string $key
-     * @return string
+     * @param mixed $key
+     * @return mixed
      * @throws NoSuchKeyException
      */
-    public function read(string $key): string
+    public function readOrWarnOnUndefined($key)
     {
-        $value = $this->readOrNull($key);
+        $value = $this->read($key);
 
         if ($value === NULL) {
             throw NoSuchKeyException::forKey($key);
@@ -37,37 +39,51 @@ class SessionStorage implements IKeyValueStorage
     }
 
     /**
-     * @param string $key
-     * @return string|null
+     * @param mixed $key
+     * @param mixed $default
+     * @return mixed
      */
-    public function readOrNull(string $key): ?string
+    public function read($key, $default = NULL)
     {
-        return $this->section[$key];
+        $value = $this->section[$key];
+
+        return $value === NULL ? $default : $value;
     }
 
     /**
-     * @param string $key
-     * @param string $value
+     * @param mixed $key
+     * @param mixed $value
+     * @return mixed
      */
-    public function write(string $key, string $value): void
+    public function write($key, $value)
     {
         $this->section[$key] = $value;
+
+        return $value;
     }
 
     /**
-     * @param string $key
+     * @param mixed $key
+     * @return void
      */
-    public function remove(string $key): void
+    public function remove($key)
     {
         unset($this->section[$key]);
     }
 
-    public function clean(): void
+    /**
+     * @return void
+     */
+    public function clean()
     {
         $this->section->remove();
     }
 
-    public function exists(string $key): bool
+    /**
+     * @param mixed $key
+     * @return bool
+     */
+    public function exists($key)
     {
         $value = $this->section[$key];
 

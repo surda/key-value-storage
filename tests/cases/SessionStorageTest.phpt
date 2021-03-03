@@ -32,20 +32,30 @@ class SessionStorageTest extends TestCase
 
         Assert::false($storage->exists('name'));
 
-        Assert::null($storage->readOrNull('name'));
+        Assert::null($storage->read('name'));
+        Assert::same('bar', $storage->read('name', 'bar'));
 
         Assert::exception(function () use ($storage) {
-            $storage->read('name');
+            $storage->readOrWarnOnUndefined('name');
         }, NoSuchKeyException::class, 'The key "name" does not exist.');
 
         $storage->write('name', 'John');
         Assert::same('John', $storage->read('name'));
+
+        $storage->write('foo', 10);
+        Assert::same(10, $storage->read('foo'));
 
         $storage->remove('foo');
         Assert::false($storage->exists('foo'));
 
         $storage->clean();
         Assert::false($storage->exists('name'));
+
+        Assert::false($storage->exists('baz'));
+        Assert::same('abc', $storage->load('baz', function () {
+            return 'abc';
+        }));
+        Assert::same('abc', $storage->read('baz'));
     }
 }
 

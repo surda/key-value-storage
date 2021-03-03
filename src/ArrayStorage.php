@@ -4,8 +4,10 @@ namespace Surda\KeyValueStorage;
 
 use Surda\KeyValueStorage\Exception\NoSuchKeyException;
 
-class ArrayStorage implements IKeyValueStorage
+class ArrayStorage implements KeyValueStorage
 {
+    use TLoad;
+
     /** @var array<mixed> */
     private $values;
 
@@ -18,13 +20,13 @@ class ArrayStorage implements IKeyValueStorage
     }
 
     /**
-     * @param string $key
-     * @return string
+     * @param mixed $key
+     * @return mixed
      * @throws NoSuchKeyException
      */
-    public function read(string $key): string
+    public function readOrWarnOnUndefined($key)
     {
-        $value = $this->readOrNull($key);
+        $value = $this->read($key);
 
         if ($value === NULL) {
             throw NoSuchKeyException::forKey($key);
@@ -34,48 +36,56 @@ class ArrayStorage implements IKeyValueStorage
     }
 
     /**
-     * @param string $key
-     * @return string|null
+     * @param mixed $key
+     * @param mixed $default
+     * @return mixed
      */
-    public function readOrNull(string $key): ?string
+    public function read($key, $default = NULL)
     {
         if ($this->exists($key)) {
-            return $this->values[$key];
+            return $this->values[$key] === NULL ? $default : $this->values[$key];
         }
 
-        return NULL;
+        return $default;
     }
 
     /**
-     * @param string $key
-     * @param string $value
-     * @return void
+     * @param mixed $key
+     * @param mixed $value
+     * @return mixed
      */
-    public function write(string $key, string $value): void
+    public function write($key, $value)
     {
         $this->values[$key] = $value;
+
+        return $value;
     }
 
     /**
-     * @param string $key
+     * @param mixed $key
      * @return void
      */
-    public function remove(string $key): void
+    public function remove($key)
     {
         if ($this->exists($key)) {
             unset($this->values[$key]);
         }
     }
 
-    public function clean(): void
+    /**
+     * @return void
+     */
+    public function clean()
     {
         $this->values = [];
     }
 
-    public function exists(string $key): bool
+    /**
+     * @param mixed $key
+     * @return bool
+     */
+    public function exists($key)
     {
         return array_key_exists($key, $this->values);
     }
-
-
 }
